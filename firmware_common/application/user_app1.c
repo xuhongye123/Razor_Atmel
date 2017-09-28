@@ -136,7 +136,53 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+static u32 u32Counter1=0;
 
+static u32 u32Counter2=0;
+
+static u32 u32OnTime=10;/*it is the time of HEARTBEAT_ON()*/
+
+static bool bPOrM=TRUE;/*FALSE is minus;TRUE is plus*/
+ 
+u32Counter1++;
+u32Counter2++;
+
+
+if(u32Counter1<=u32OnTime)
+   { 
+     HEARTBEAT_ON();
+   }
+else
+     {
+      HEARTBEAT_OFF();  
+     }
+if(u32Counter1==10)/*100HZ*/
+   {
+      u32Counter1=0;
+   } 
+   
+ if(u32Counter2==100)
+   { 
+     u32Counter2=0;
+     
+     if(u32OnTime==10)
+       {
+          bPOrM=TRUE;
+       }
+     else if(u32OnTime==0)
+          {
+            bPOrM=FALSE;
+          }  
+     
+     if(bPOrM)
+       {
+          u32OnTime--;
+       }
+     else 
+         {
+            u32OnTime++;
+         }  
+   }
 } /* end UserApp1SM_Idle() */
     
 
