@@ -87,7 +87,17 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
+  LedOn(0);
+  LedOff(1);
+  LedOff(2);
+  LedOff(3);
+  LedOff(4);
+  LedOff(5);
+  LedOff(6);
+  LedOff(7);
+  LedOn(8);
+  LedOff(9);
+  LedOff(10);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -119,7 +129,7 @@ Promises:
 void UserApp1RunActiveState(void)
 {
   UserApp1_StateMachine();
-
+  
 } /* end UserApp1RunActiveState */
 
 
@@ -136,8 +146,75 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-
-} /* end UserApp1SM_Idle() */
+  static u16 au16LedBrightness[]={14,10,6,4,3,2,1};//WHITE = 0, PURPLE, BLUE, CYAN, GREEN, YELLOW, ORANGE, RED, LCD_RED, LCD_GREEN, LCD_BLUE
+  static u16 au16LedOnTime[]={1400,1000,600,400,300,200,100};//faster
+  static u16 u16LedCounter=0;
+  static u8 u8LedNumber=0;
+  u16LedCounter++;
+  static bool abOnOff[]={TRUE,FALSE,TRUE,FALSE,TRUE,TRUE};//TRUE is on
+  static u8 u8LcdNumber[]={9,8,10,9,8,9};
+  static u8 u8LcdChange=0;
+  static bool bLcdReturn=FALSE;//TRUE is return 
+  if(u16LedCounter==au16LedOnTime[u8LedNumber])
+  {
+    u16LedCounter=0;
+    LedOff(u8LedNumber);
+    LedOn(u8LedNumber+1);
+    LedPWM(u8LedNumber+1,au16LedBrightness[u8LedNumber+1]);
+    u8LedNumber++;   
+    if(u8LedNumber==7)
+    {
+      u8LedNumber=0;
+      LedOn(0); 
+      if(bLcdReturn==TRUE)
+       {
+         LedOff(9);
+         LedOff(10); 
+         bLcdReturn=FALSE;   
+       }
+      else
+      {
+        if(abOnOff[u8LcdChange])
+        { 
+          LedOn(u8LcdNumber[u8LcdChange]);
+        }
+        else
+        {
+          LedOff(u8LcdNumber[u8LcdChange]);       
+        }
+        u8LcdChange++;
+        if(u8LcdChange==6)
+          { 
+            u8LcdChange=0;
+            bLcdReturn=TRUE;
+            
+          }
+      }     
+    }
+  }
+   
+  
+ 
+      
+    
+      
+  
+  
+  
+  
+  
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  }
+ /* end UserApp1SM_Idle() */
     
 
 /*-------------------------------------------------------------------------------------------------------------------*/
