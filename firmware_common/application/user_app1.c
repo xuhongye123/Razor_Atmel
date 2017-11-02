@@ -87,7 +87,14 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOn(RED);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -136,10 +143,122 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  static u8 au8Password[10]={0,0,0,0,0,0,0,0,0,0};//Initial password
+  
+  static u8 au8PressKey[10];
+ 
+  static bool bSetOrInputFlag=FALSE;//TRUE is set passward,FALSE is input passward
 
-} /* end UserApp1SM_Idle() */
-    
-
+  static u8 u8KeyNumber=0;
+  
+  static u8 u8PasswordLong=10;
+  
+  if( IsButtonHeld(BUTTON3, 2000) )// change work mode to set password  and when reset please must held on at least 2S,otherwise the LED's blink has some BUGs
+  {
+    ButtonAcknowledge(BUTTON3);
+    LedOff(RED);
+    LedOff(GREEN);
+    LedBlink(RED,LED_2HZ);
+    LedBlink(GREEN,LED_2HZ);
+    bSetOrInputFlag=TRUE;
+    u8PasswordLong=0;
+  }
+  if (bSetOrInputFlag==TRUE)//set password
+  {
+    if( WasButtonPressed(BUTTON0) )
+    {
+      ButtonAcknowledge(BUTTON0);
+      au8Password[u8PasswordLong]=0;
+      u8PasswordLong++;
+    }
+    if( WasButtonPressed(BUTTON1) )
+    {
+      ButtonAcknowledge(BUTTON1);
+      au8Password[u8PasswordLong]=1;
+      u8PasswordLong++;
+    }
+    if( WasButtonPressed(BUTTON2) )
+    {
+      ButtonAcknowledge(BUTTON2);
+      au8Password[u8PasswordLong]=2;
+      u8PasswordLong++;
+    }
+    if( WasButtonPressed(BUTTON3) )//use BUTTON3 to finish setting
+    {
+      ButtonAcknowledge(BUTTON3);
+      LedOn(RED);
+      LedOff(GREEN);
+      bSetOrInputFlag=FALSE;
+    }
+  }
+  
+  
+  
+  
+  if(bSetOrInputFlag==FALSE)//Input password
+  {
+    if( WasButtonPressed(BUTTON0) )
+    {
+      ButtonAcknowledge(BUTTON0);
+      au8PressKey[u8KeyNumber]=0;
+      u8KeyNumber++;
+    }
+    if( WasButtonPressed(BUTTON1) )
+    {
+      ButtonAcknowledge(BUTTON1);
+      au8PressKey[u8KeyNumber]=1;
+      u8KeyNumber++;
+    }
+    if( WasButtonPressed(BUTTON2) )
+    {
+      ButtonAcknowledge(BUTTON2);
+      au8PressKey[u8KeyNumber]=2;
+      u8KeyNumber++;
+    }
+    if( WasButtonPressed(BUTTON3) )// Use BUTTON3 to confirm password
+    {
+      ButtonAcknowledge(BUTTON3);
+      if(u8KeyNumber>=10&&u8PasswordLong>=10)//If the set and input go beyond the limit(10),take the front 10 number,
+      {
+        for(u8 i=0;i<10;i++)//Determine password content
+        if(au8Password[i]!=au8PressKey[i])
+        {
+          LedBlink(RED,LED_2HZ);
+          u8KeyNumber=0;
+        }
+        else
+        {
+          LedBlink(GREEN,LED_2HZ);//Password correct   
+          LedOff(RED);
+          u8KeyNumber=0;
+        }   
+      }
+      else 
+      { 
+        if(u8KeyNumber!=u8PasswordLong)
+        {
+          LedBlink(RED,LED_2HZ);//If Input wrong,only can reset password
+          u8KeyNumber=0;
+        }
+        else 
+        {
+          for(u8 i=0;i<(u8KeyNumber-1);i++)//Determine password content
+          if(au8Password[i]!=au8PressKey[i])
+          {
+            LedBlink(RED,LED_2HZ);
+            u8KeyNumber=0;
+          }
+          else
+          {
+            LedBlink(GREEN,LED_2HZ);//Password correct   
+            LedOff(RED);
+            u8KeyNumber=0;
+          }  
+        }
+      }
+    }
+  } 
+}
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
 static void UserApp1SM_Error(void)          
