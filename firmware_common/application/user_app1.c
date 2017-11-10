@@ -49,6 +49,9 @@ volatile u32 G_u32UserApp1Flags;                       /* Global state flags */
 extern volatile u32 G_u32SystemFlags;                  /* From main.c */
 extern volatile u32 G_u32ApplicationFlags;             /* From main.c */
 
+
+extern u8 G_au8DebugScanfBuffer[];  /* From debug.c */
+extern u8 G_u8DebugScanfCharCount;  /* From debug.c */
 extern volatile u32 G_u32SystemTime1ms;                /* From board-specific source file */
 extern volatile u32 G_u32SystemTime1s;                 /* From board-specific source file */
 
@@ -87,7 +90,7 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
+  
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -136,7 +139,89 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  static u8 au8TargetString[]=NAME;
+  static u8 u8Counter1=0;
+  static u8 u8Counter2=0; 
+  static u8 u8Index=0;
+  static u8 u8LetterNumber=0; 
+  static u8 u8AppearTimes=0;
+  static u8 u8FirstLetterNumber=0;
+  static u8 au8Input[2]= {0};
+  static u8 au8InputString[128]={0};
+  static u8 au8OutputString1[]="\n\r***\n\r";
+  static u8 au8OutputString2[]="\n\r****\n\r";
+  static u8 au8OutputExtraString2[]="*";
+  
+  if(DebugScanf(au8Input)>0)//
+  {   
+    au8InputString[u8Index]=au8Input[0];
+    u8Index++;   
 
+    for(u8Counter1=u8FirstLetterNumber;u8Counter1<u8Index;u8Counter1++)
+    {
+      if(au8InputString[u8Counter1]==au8TargetString[0])//check the first letter
+      {
+        for(u8Counter2=1;u8Counter2<sizeof(au8TargetString)+1;u8Counter2++)//cut out the same length and compare two strings
+        {
+          if(au8InputString[u8Counter1+u8Counter2]==au8TargetString[u8Counter2])
+          {
+            u8LetterNumber++;
+            if(u8LetterNumber==sizeof(au8TargetString))
+            {
+              u8FirstLetterNumber=sizeof(au8TargetString)+u8Counter1-1;//
+              u8LetterNumber=0;
+              u8AppearTimes++;             
+              if(u8AppearTimes<10)
+              {
+                DebugPrintf(au8OutputString1);
+                DebugPrintf(au8OutputExtraString2);
+                DebugPrintNumber(u8AppearTimes);
+                DebugPrintf(au8OutputExtraString2);
+                DebugPrintf(au8OutputString1);
+              }
+              else 
+              {
+                DebugPrintf(au8OutputString2);
+                DebugPrintf(au8OutputExtraString2);
+                DebugPrintNumber(u8AppearTimes);
+                DebugPrintf(au8OutputExtraString2);
+                DebugPrintf(au8OutputString2);
+              }
+            }
+          }
+          else
+          {
+            u8LetterNumber=0;
+          }
+        }
+      }
+    }
+  }
+  
+        
+       
+  
+  
+
+  
+  
+  
+   
+ 
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 } /* end UserApp1SM_Idle() */
     
 

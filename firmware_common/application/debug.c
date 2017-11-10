@@ -97,7 +97,8 @@ extern volatile u32 G_u32SystemTime1s;                   /* From board-specific 
 extern u8 G_au8MessageOK[];                              /* From utilities.c */
 extern u8 G_au8MessageFAIL[];                            /* From utilities.c */
 extern u8 G_au8MessageON[];                              /* From utilities.c */
-extern u8 G_au8MessageOFF[];                             /* From utilities.c */
+extern u8 G_au8MessageOFF[];
+                             /* From utilities.c */
 
 
 /***********************************************************************************************************************
