@@ -59,8 +59,7 @@ Variable names shall start with "UserApp1_" and be declared as static.
 ***********************************************************************************************************************/
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 //static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
-
-
+           
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
@@ -85,9 +84,37 @@ Requires:
 Promises:
   - 
 */
-void UserApp1Initialize(void)
-{
  
+
+
+void UserApp1Initialize(void) //Enter initial interface and  go to guide interface
+{ 
+  static u8 au8InitialMessage1[]="Welcome to use!";
+  static u8 au8InitialMessage2[]="Please press any button to continue";
+  LCDCommand(LCD_CLEAR_CMD);     
+  LCDMessage(LINE1_START_ADDR+3,au8InitialMessage1);
+  LCDMessage(LINE2_START_ADDR,au8InitialMessage2);
+  LedPWM(RED,LED_PWM_10);
+ 
+ 
+  
+  
+  
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -136,6 +163,268 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  static bool bUseFlag=FALSE;//TRUE is on use,FLASE is in initial interface
+  static u16 u16Counter=0;//Count scroll
+  static u8 u8Index=0;
+  static u8 au8InitialMessage2[]="Please press any button to continue.";
+  static u8 au8DisplayString1[20];
+  static u8 au8DisplayString2[20];
+  static bool bRollForwardFlag=TRUE;//TRUE is forward,FLASE is backward
+  static u8 au8GuideMessage1[]="Here is guidance:   B0:back to guidance";
+  static u8 au8GuideMessage2[]="B1:show my name. B2:use debug interface";
+  static u8 i=0;
+  static u8 temp=0;
+
+
+
+    
+  static u8 au8AuthorName[]=NAME;
+  static u8 au8Input[2]={0};
+  static u8 au8InputString[128]={0};
+  static u8 au8InputString1[128]={0};
+  static u8 au8InputString2[128]={0};
+  static bool bDymaic=FALSE;//TRUE is dymaic,FALSE is static
+  static bool bButton0=FALSE;//TRUE to use this button's function
+  static bool bButton1=FALSE;
+  static bool bButton2=FALSE;
+ 
+  
+  if(bUseFlag==FALSE)//Initial interface and tell how to continue
+  {
+    u16Counter++;
+    if(u16Counter==SCROLLTIME)//Scroll character
+    {
+      u16Counter=0;
+      if(bRollForwardFlag==TRUE)
+      {
+        u8Index++;
+      }
+      if(bRollForwardFlag==FALSE)
+      {
+        u8Index--;    
+      }
+      for(u8 i=0;i<20;i++)
+      {
+        au8DisplayString2[i]=au8InitialMessage2[i+u8Index];     
+      }
+      LCDMessage(LINE2_START_ADDR,au8DisplayString2);     
+      if(u8Index==(sizeof(au8InitialMessage2)-21))
+      {
+       bRollForwardFlag=FALSE;
+      }
+      if(u8Index==0)
+      {
+       bRollForwardFlag=TRUE;
+      }  
+    }
+    if(WasButtonPressed(BUTTON0)||WasButtonPressed(BUTTON1)||WasButtonPressed(BUTTON2)||WasButtonPressed(BUTTON3))//press any button to use
+    {
+      ButtonAcknowledge(BUTTON0);
+      ButtonAcknowledge(BUTTON1);
+      ButtonAcknowledge(BUTTON2);
+      ButtonAcknowledge(BUTTON3);         
+      bUseFlag=TRUE;
+      u16Counter=0;
+      u8Index=0;
+      bButton0=TRUE;
+      bRollForwardFlag=TRUE;
+      LedOff(RED);
+      LedBlink(ORANGE,LED_2HZ);
+    }
+  }
+  
+  
+  if(bUseFlag)//use the function 
+  {
+    if(WasButtonPressed(BUTTON0))//Back to guide interface
+    {
+      ButtonAcknowledge(BUTTON0);
+      u16Counter=0;
+      u8Index=0;     
+      bButton0=TRUE;
+      bButton1=FALSE;
+      bButton2=FALSE;
+      bRollForwardFlag=TRUE;
+      LedOff(RED);
+      LedBlink(ORANGE,LED_2HZ);
+      PWMAudioOff(BUZZER1);
+    }
+    if(WasButtonPressed(BUTTON1))//Show author's name and special effects
+    {
+      ButtonAcknowledge(BUTTON1);
+      u16Counter=0;
+      u8Index=0;
+      bButton0=FALSE;
+      bButton1=TRUE;
+      bButton2=FALSE;
+      LedBlink(ORANGE,LED_2HZ);
+      LedBlink(RED,LED_2HZ);    
+       
+    }
+     if(WasButtonPressed(BUTTON2))//Enter debug interface
+    {
+      ButtonAcknowledge(BUTTON2);
+      u16Counter=0;
+      u8Index=0;
+      bButton0=FALSE;
+      bButton1=FALSE;
+      bButton2=TRUE;
+      LedOff(ORANGE);
+      LedBlink(RED,LED_2HZ);
+      PWMAudioOff(BUZZER1);
+      LCDCommand(LCD_CLEAR_CMD);
+    }
+   
+    if(bButton0)//Back to guide interface
+    {
+      u16Counter++;     
+      if(u16Counter==SCROLLTIME)
+      {
+        u16Counter=0;
+        LCDCommand(LCD_CLEAR_CMD);
+        for(u8 i=0;i<20;i++)
+        {
+          au8DisplayString1[i]=au8GuideMessage1[i+u8Index];
+          au8DisplayString2[i]=au8GuideMessage2[i+u8Index];     
+        }
+        LCDMessage(LINE1_START_ADDR,au8DisplayString1); 
+        LCDMessage(LINE2_START_ADDR,au8DisplayString2);
+        if(bRollForwardFlag==TRUE)
+        {
+          u8Index++;
+        }
+        if(bRollForwardFlag==FALSE)
+        {
+          u8Index--;    
+        }      
+        if(u8Index==(sizeof(au8GuideMessage2)-21))
+        {
+         bRollForwardFlag=FALSE;
+        }
+        if(u8Index==0)
+        {
+         bRollForwardFlag=TRUE;
+        }  
+      }
+    }
+    
+    if(bButton1)//Show author's name and special effects
+    {
+      u16Counter++;
+      if(u16Counter==SCROLLTIME)
+      {
+        u16Counter=0;
+        LCDCommand(LCD_CLEAR_CMD);              
+        if(u8Index==(22-sizeof(au8AuthorName)))
+        {
+          u8Index=0;
+        }
+        LCDMessage(LINE1_START_ADDR+u8Index,au8AuthorName);
+        PWMAudioSetFrequency(BUZZER1, 100+30*u8Index);
+        PWMAudioOn(BUZZER1);
+        u8Index++;          
+      }
+      
+    
+    }
+      
+    if(bButton2)//Enter debug Interface
+    {
+      if(DebugScanf(au8Input)>0)
+      {
+        au8InputString[u8Index]=au8Input[0];
+        if(u8Index<20)
+        {
+          au8InputString1[u8Index]=au8Input[0];
+          u8Index++;     
+        }
+        else
+        {
+          au8InputString2[u8Index-20]=au8Input[0];
+          u8Index++;       
+        }
+        if(u8Index==40)
+        {
+          bDymaic=TRUE;       
+        }
+        if(bDymaic==FALSE)
+        {
+          LCDCommand(LCD_CLEAR_CMD);
+          LCDMessage(LINE1_START_ADDR,au8InputString1);                  
+          LCDMessage(LINE2_START_ADDR,au8InputString2);        
+        }
+      }
+      if(bDymaic)
+      {
+        u16Counter++;
+        if(u16Counter==SCROLLTIME)
+        {
+          u16Counter=0;
+          LCDCommand(LCD_CLEAR_CMD);
+          au8InputString[39]=au8InputString[0];
+          for(i=0;i<39;i++)
+          {
+            temp=au8InputString[i+1];
+            au8InputString[i]=temp;             
+          }
+          for(i=0;i<20;i++)
+          {
+            au8InputString1[i]=au8InputString[i];
+          }
+          for (i=20;i<40;i++)
+          {
+            au8InputString2[i-20]=au8InputString[i];
+          }
+          LCDMessage(LINE1_START_ADDR,au8InputString1);                  
+          LCDMessage(LINE2_START_ADDR,au8InputString2);         
+        }       
+      } 
+    }   
+  } 
+  
+
+    
+    
+    
+    
+    
+    
+    
+  
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
 } /* end UserApp1SM_Idle() */
     
