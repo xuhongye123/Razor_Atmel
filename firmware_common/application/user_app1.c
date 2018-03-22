@@ -87,7 +87,35 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
+  static u8 au8Message0[]="Press button 1/2 ";
+  static u8 au8Message1[]="Or input 1/2 to use ";
+  //the guidance to use
  
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOff(RED);
+  LedOff(LCD_RED);
+  LedOff(LCD_GREEN);
+  LedOff(LCD_BLUE);
+  //set led and lcd backlight
+  
+  PWMAudioOff(BUZZER1);
+  PWMAudioSetFrequency(BUZZER1, 200);
+  //set buzzer
+  
+  LCDCommand(LCD_CLEAR_CMD);
+  LCDMessage(LINE1_START_ADDR,au8Message0);
+  LCDMessage(LINE2_START_ADDR,au8Message1);
+  //set lcd message 
+  
+   
+  
+  
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -134,8 +162,109 @@ State Machine Function Definitions
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for ??? */
+extern u8 G_au8DebugScanfBuffer[];
+extern u8 G_u8DebugScanfCharCount;
+//to use G_au8DebugScanfBuffer
+
+
 static void UserApp1SM_Idle(void)
 {
+  static u8 au8Message1Debug[]="Entering state 1";
+  static u8 au8Message2Debug[]="Entering state 2";
+  static u8 au8Message1LCD[]="STATE 1";
+  static u8 au8Message2LCD[]="STATE 2";
+  static u16 u16BuzzerCounter=0;     // counter 100 and 1000
+  static bool bBuzzerFlag=FALSE;     //TRUE is buzzer on
+  
+  /*state 1*/
+  if(WasButtonPressed(BUTTON1)||G_au8DebugScanfBuffer[0] == '1')
+  {
+    ButtonAcknowledge(BUTTON1);
+   
+    LedOn(WHITE);
+    LedOn(PURPLE);
+    LedOn(BLUE);
+    LedOn(CYAN);
+    LedOff(GREEN);
+    LedOff(YELLOW);
+    LedOff(ORANGE);
+    LedOff(RED);
+    LedOn(LCD_RED);
+    LedOff(LCD_GREEN);
+    LedOn(LCD_BLUE);
+    //about led 
+    
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR,au8Message1LCD);
+    //about lcd
+    
+    DebugScanf(G_au8DebugScanfBuffer);
+    DebugLineFeed();
+    DebugPrintf(au8Message1Debug);
+    DebugLineFeed();
+    //about debug
+    
+    PWMAudioOff(BUZZER1);
+    bBuzzerFlag=FALSE;
+    //about buzzer
+    
+  }
+  
+  
+  /*state 2*/
+   if(WasButtonPressed(BUTTON2)||G_au8DebugScanfBuffer[0] == '2')
+  {
+    ButtonAcknowledge(BUTTON2);
+    
+    LedOff(WHITE);
+    LedOff(PURPLE);
+    LedOff(BLUE);
+    LedOff(CYAN);
+    LedOn(GREEN);
+    LedBlink(GREEN,LED_1HZ);
+    LedOn(YELLOW);
+    LedBlink(YELLOW,LED_2HZ);
+    LedOn(ORANGE);
+    LedBlink(ORANGE,LED_4HZ);
+    LedOn(RED);
+    LedBlink(RED,LED_8HZ);
+    LedOn(LCD_RED);
+    LedPWM(LCD_RED, LED_PWM_100);
+    LedOn(LCD_GREEN);
+    LedPWM(LCD_GREEN, LED_PWM_35);
+    LedOff(LCD_BLUE);
+    //about led
+    
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR,au8Message2LCD);
+    //about lcd
+    
+    DebugScanf(G_au8DebugScanfBuffer);
+    DebugLineFeed();
+    DebugPrintf(au8Message2Debug);
+    DebugLineFeed();
+    //about debug
+    
+    PWMAudioOff(BUZZER1);
+    bBuzzerFlag=TRUE; 
+    //about buzzer
+    
+  }
+  
+/*about buzzer*/
+  if(bBuzzerFlag)
+  {
+    u16BuzzerCounter++;
+    if(u16BuzzerCounter == 100)
+    {
+      PWMAudioOff(BUZZER1);
+    }
+     if(u16BuzzerCounter == 1000)
+    {
+      PWMAudioOn(BUZZER1);
+      u16BuzzerCounter=0;
+    }
+  }
 
 } /* end UserApp1SM_Idle() */
     
