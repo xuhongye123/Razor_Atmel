@@ -103,6 +103,38 @@ void UserApp1Initialize(void)
   LCDCommand(LCD_CLEAR_CMD);
   for(u32 i = 0; i < 10000; i++);
   LCDMessage(LINE1_START_ADDR, au8WelcomeMessage);
+   /* Configure ANT for this application */
+  UserApp1_sChannelInfo.AntChannel          = ANT_CHANNEL_USERAPP;
+  UserApp1_sChannelInfo.AntChannelType      = ANT_CHANNEL_TYPE_USERAPP;
+  UserApp1_sChannelInfo.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
+  UserApp1_sChannelInfo.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
+ 
+  UserApp1_sChannelInfo.AntDeviceIdLo       = ANT_DEVICEID_LO_USERAPP;
+  UserApp1_sChannelInfo.AntDeviceIdHi       = ANT_DEVICEID_HI_USERAPP;
+  UserApp1_sChannelInfo.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
+  UserApp1_sChannelInfo.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
+  UserApp1_sChannelInfo.AntFrequency        = ANT_FREQUENCY_USERAPP;
+  UserApp1_sChannelInfo.AntTxPower          = ANT_TX_POWER_USERAPP;
+
+  UserApp1_sChannelInfo.AntNetwork = ANT_NETWORK_DEFAULT;
+  for(u8 i = 0; i < ANT_NETWORK_NUMBER_BYTES; i++)
+  {
+    UserApp1_sChannelInfo.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
+  }
+  
+  /* Attempt to queue the ANT channel setup */
+  if( AntAssignChannel(&UserApp1_sChannelInfo) )
+  {
+    UserApp1_u32Timeout = G_u32SystemTime1ms;
+    UserApp1_StateMachine = UserApp1SM_AntChannelAssign;
+  }
+  else
+  {
+    /* The task isn't properly initialized, so shut it down and don't run */
+    DebugPrintf(UserApp1_au8MessageFail);
+    UserApp1_StateMachine = UserApp1SM_Error;
+  }
+
 #endif /* EIE1 */
   
 #if 0 // untested for MPG2
@@ -198,8 +230,11 @@ static void UserApp1SM_AntChannelAssign()
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-  static u8 au8TestMessage[] = {0, 0, 0, 0, 0xA5, 0, 0, 0};
+  static u8 au8TestMessage[] = {0x5B, 0, 0, 0, 0xFF, 0, 0, 0};
   u8 au8DataContent[] = "xxxxxxxxxxxxxxxx";
+  
+  static u8 au8FailedMessageNumber[]="Failed Number:000000";
+  static u8 au8SentMessageNumber[]="Sent Number:000000";
   
   /* Check all the buttons and update au8TestMessage according to the button state */ 
   au8TestMessage[0] = 0x00;
@@ -261,7 +296,41 @@ static void UserApp1SM_Idle(void)
         }
       }
       AntQueueBroadcastMessage(ANT_CHANNEL_USERAPP, au8TestMessage);
-    }
+    
+    
+    
+    for(u8 i = 0; i < 3; i++)
+       {
+         au8SentMessageNumber[2 * i + 12] = HexToASCIICharUpper(au8TestMessage[i+5] / 16);
+         au8SentMessageNumber[2 * i + 13] = HexToASCIICharUpper(au8TestMessage[i+5] % 16);
+       } 
+       
+ 
+       LCDMessage(LINE1_START_ADDR, au8SentMessageNumber);
+      
+       if(G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX] == 0x06)
+       {
+         au8TestMessage[3]++;
+         if(au8TestMessage[3] == 0)
+         {
+           au8TestMessage[2]++;
+           if(au8TestMessage[2] == 0)
+           {
+             au8TestMessage[1]++;
+           }
+         }
+         
+         for(u8 i = 0; i < 3; i++)
+         {
+           au8FailedMessageNumber[2 * i + 14] = HexToASCIICharUpper(au8TestMessage[i+1] / 16);
+           au8FailedMessageNumber[2 * i + 15] = HexToASCIICharUpper(au8TestMessage[i+1] % 16);
+         }
+         
+       }
+         LCDCommand(LCD_CLEAR_CMD);
+         LCDMessage(LINE1_START_ADDR, au8SentMessageNumber);
+         LCDMessage(LINE2_START_ADDR, au8FailedMessageNumber);   
+     }  
   } /* end AntReadData() */
   
 } /* end UserApp1SM_Idle() */
