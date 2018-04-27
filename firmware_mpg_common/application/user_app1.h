@@ -26,7 +26,7 @@ Type Definitions
 
 #define MASTER_SLAVE_CHANGE_DELAY       (u32)10000               
 #define LCDMESSAGE_DELAY                (u32)50             /*the machine can not ICDMessage so fast*/
-        
+#define FINDTIME                        (u32)2000
 
 #define WARNING_BLINK_TIME              (u32)1500 
 
@@ -78,7 +78,6 @@ void UserApp1RunActiveState(void);
 State Machine Declarations
 ***********************************************************************************************************************/
 static void UserApp1SM_WaitChannelAssign(void);
-static void UserApp1SM_Delay(void);
 static void UserApp1SM_Introduce(void);
 static void UserApp1SM_GameRules(void);    
 static void UserApp1SM_WaitChannelOpen(void);
@@ -88,6 +87,8 @@ static void UserApp1SM_Change(void);
 
 
 /*no ues*/
+static void UserApp1SM_Delay(void);
+
 static void UserApp1SM_Error(void);
 static void UserApp1SM_Idle(void); 
 static void UserApp1SM_FailedInit(void);        
