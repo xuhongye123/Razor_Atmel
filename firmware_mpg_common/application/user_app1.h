@@ -24,13 +24,20 @@ Header file for yournewtaskname.c
 Type Definitions
 **********************************************************************************************************************/
 
+#define MASTER_SLAVE_CHANGE_DELAY       (u32)10000               
+#define LCDMESSAGE_DELAY                (u32)50             /*the machine can not ICDMessage so fast*/
+        
+
+#define WARNING_BLINK_TIME              (u32)1500 
+
 
 /**********************************************************************************************************************
 Constants / Definitions
 **********************************************************************************************************************/
 /* Required constants for ANT channel configuration */
 #define ANT_CHANNEL_USERAPP             ANT_CHANNEL_0         /* Channel 0 - 7 */
-#define ANT_CHANNEL_TYPE_USERAPP        CHANNEL_TYPE_SLAVE    /* ANT SLAVE */
+#define ANT_CHANNEL_TYPE_SEEK           CHANNEL_TYPE_SLAVE    /* THE ONE SEEK */
+#define ANT_CHANNEL_TYPE_HIDE           CHANNEL_TYPE_MASTER   /* THE ONE HIDE */
 #define ANT_DEVICEID_LO_USERAPP         (u8)0                 /* Low byte of two-byte Device # */
 #define ANT_DEVICEID_HI_USERAPP         (u8)0                 /* High byte of two-byte Device # */
 #define ANT_DEVICE_TYPE_USERAPP         (u8)0                 /* 1 - 255 */
@@ -71,12 +78,18 @@ void UserApp1RunActiveState(void);
 State Machine Declarations
 ***********************************************************************************************************************/
 static void UserApp1SM_WaitChannelAssign(void);
-static void UserApp1SM_Idle(void);    
+static void UserApp1SM_Delay(void);
+static void UserApp1SM_Introduce(void);
+static void UserApp1SM_GameRules(void);    
 static void UserApp1SM_WaitChannelOpen(void);
 static void UserApp1SM_ChannelOpen(void);
 static void UserApp1SM_WaitChannelClose(void);
+static void UserApp1SM_Change(void);
 
-static void UserApp1SM_Error(void);         
+
+/*no ues*/
+static void UserApp1SM_Error(void);
+static void UserApp1SM_Idle(void); 
 static void UserApp1SM_FailedInit(void);        
 
 
