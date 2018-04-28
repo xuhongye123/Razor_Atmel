@@ -70,7 +70,6 @@ static u32 UserApp1_u32Timeout;                      /* Timeout counter used acr
 
 
 static AntAssignChannelInfoType sAntSetupData;
-static bool bChangeFlag = FALSE;
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
@@ -223,65 +222,56 @@ static void UserApp1SM_WaitChannelAssign(void)
 
 static void UserApp1SM_Introduce(void)
 {
-  if(bChangeFlag == FALSE)
+  static u8 au8IntroduceMessage1[] = "B0:HIDE,B1:SEEK ";
+  static u8 au8IntroduceMessage2[] = "B3:GET DETAILED RULES";
+  static u8 au8IntroduceMessage3[] = "Warning to partner ";
+  static u8 au8IntroduceMessage4[] = "NOT BUTTON SAME,0/1";
+  static u32 u32IntroduceCounter = 0;
+  
+  u32IntroduceCounter++;
+  LedOff(RED);
+  LedOff(YELLOW);
+  LedOn(ORANGE);
+  if(u32IntroduceCounter == WARNING_BLINK_TIME)
   {
-    static u8 au8IntroduceMessage1[] = "B0:HIDE,B1:SEEK ";
-    static u8 au8IntroduceMessage2[] = "B3:GET DETAILED RULES";
-    static u8 au8IntroduceMessage3[] = "Warning to partner ";
-    static u8 au8IntroduceMessage4[] = "NOT BUTTON SAME,0/1";
-    static u32 u32IntroduceCounter = 0;
-    
-    u32IntroduceCounter++;
-    LedOff(RED);
-    LedOff(YELLOW);
-    LedOn(ORANGE);
-    if(u32IntroduceCounter == WARNING_BLINK_TIME)
-    {
-      LCDCommand(LCD_CLEAR_CMD);
-      LCDMessage(LINE1_START_ADDR, au8IntroduceMessage1); 
-      LCDMessage(LINE2_START_ADDR, au8IntroduceMessage2); 
-    }
-    if(u32IntroduceCounter == (2*WARNING_BLINK_TIME))
-    {
-      LCDCommand(LCD_CLEAR_CMD);
-      LCDMessage(LINE1_START_ADDR, au8IntroduceMessage3); 
-      LCDMessage(LINE2_START_ADDR, au8IntroduceMessage4);
-      u32IntroduceCounter=0;
-    }
-    
-    if(WasButtonPressed(BUTTON0))
-    {
-      u32IntroduceCounter=0;
-      ButtonAcknowledge(BUTTON0);
-      sAntSetupData.AntChannelType = ANT_CHANNEL_TYPE_HIDE;
-      AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
-      UserApp1_u32Timeout = G_u32SystemTime1ms;
-      UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
-    }
-    if(WasButtonPressed(BUTTON1))
-    {
-      u32IntroduceCounter=0;
-      ButtonAcknowledge(BUTTON1);
-      sAntSetupData.AntChannelType = ANT_CHANNEL_TYPE_SEEK;
-      AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
-      UserApp1_u32Timeout = G_u32SystemTime1ms;
-      UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
-    }
-    if(WasButtonPressed(BUTTON3))
-    {
-      u32IntroduceCounter=0;
-      ButtonAcknowledge(BUTTON3);
-      UserApp1_StateMachine = UserApp1SM_GameRules;
-    }
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8IntroduceMessage1); 
+    LCDMessage(LINE2_START_ADDR, au8IntroduceMessage2); 
   }
-  if(bChangeFlag == TRUE)
-  {   
+  if(u32IntroduceCounter == (2*WARNING_BLINK_TIME))
+  {
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8IntroduceMessage3); 
+    LCDMessage(LINE2_START_ADDR, au8IntroduceMessage4);
+    u32IntroduceCounter=0;
+  }
+  
+  if(WasButtonPressed(BUTTON0))
+  {
+    u32IntroduceCounter=0;
+    ButtonAcknowledge(BUTTON0);
+    sAntSetupData.AntChannelType = ANT_CHANNEL_TYPE_HIDE;
     AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
     UserApp1_u32Timeout = G_u32SystemTime1ms;
-    UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;    
+    UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
   }
-}
+  if(WasButtonPressed(BUTTON1))
+  {
+    u32IntroduceCounter=0;
+    ButtonAcknowledge(BUTTON1);
+    sAntSetupData.AntChannelType = ANT_CHANNEL_TYPE_SEEK;
+    AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
+    UserApp1_u32Timeout = G_u32SystemTime1ms;
+    UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;
+  }
+  if(WasButtonPressed(BUTTON3))
+  {
+    u32IntroduceCounter=0;
+    ButtonAcknowledge(BUTTON3);
+    UserApp1_StateMachine = UserApp1SM_GameRules;
+  }
 
+}
 static void UserApp1SM_GameRules(void)
 { 
   static u8 u8GameRulesCounter=0;                
@@ -338,10 +328,7 @@ static void UserApp1SM_ChannelOpen(void)
   static u8 au8SeekerMessage1[]="Faint signal";
   static u8 au8SeekerMessage2[]="Near!";
   static u8 au8SeekerMessage3[]="Find,congratulations!";
-  static bool bMessage1=FALSE;
-  static bool bMessage2=FALSE;
-  static bool bMessage3=FALSE;
-  static bool bGameOverFlag=FALSE;
+  static bool bGameFlag=TRUE;
   static u32 u32ChannelOpenCounter1=0;
   static u32 u32ChannelOpenCounter2=0;
     
@@ -353,11 +340,8 @@ static void UserApp1SM_ChannelOpen(void)
       u32ChannelOpenCounter1=0;
       LCDCommand(LCD_CLEAR_CMD);
       LCDMessage( LINE1_START_ADDR , "Wait for seeking..." );
-    }  
+    }
   }
-  
-  
-  
   if(sAntSetupData.AntChannelType == ANT_CHANNEL_TYPE_SEEK)
   {
     u32ChannelOpenCounter1++;
@@ -368,9 +352,9 @@ static void UserApp1SM_ChannelOpen(void)
       LCDMessage( LINE1_START_ADDR , "Seeking..." );
       LCDMessage( LINE2_START_ADDR , "RSSI: " );
       LCDMessage( LINE2_START_ADDR+5,au8RSSI_String);
-      LCDMessage( LINE2_START_ADDR+9,"dBm");  
+      LCDMessage( LINE2_START_ADDR+9,"dBm");
     }
-    if( AntReadAppMessageBuffer())
+    if( AntReadAppMessageBuffer() )
     {
       if(G_eAntApiCurrentMessageClass == ANT_DATA)
       {
@@ -388,9 +372,10 @@ static void UserApp1SM_ChannelOpen(void)
             au8RSSI_String[2] = (s8UserApp1_RSSI/-1)%100/10+'0';
             au8RSSI_String[3] = (s8UserApp1_RSSI/-1)%10+'0';         
           }                
-        }
+        }    
         if(s8UserApp1_RSSI<  -40 && s8UserApp1_RSSI>= -50)
         {
+          u32ChannelOpenCounter2++;
           PWMAudioSetFrequency(BUZZER1, au16BuzzerFrequency[4]);
           PWMAudioOn(BUZZER1);
           LedBlink(GREEN,LED_0_5HZ);
@@ -398,13 +383,13 @@ static void UserApp1SM_ChannelOpen(void)
           LedOn(BLUE);
           LedOn(PURPLE);
           LedOn(WHITE);
-          bMessage1=FALSE;
-          bMessage2=FALSE;
-          bMessage3=TRUE;
-          u32ChannelOpenCounter1=0;
-          AntCloseChannelNumber(ANT_CHANNEL_USERAPP);
-          UserApp1_u32Timeout = G_u32SystemTime1ms;
-          UserApp1_StateMachine = UserApp1SM_WaitChannelClose;
+          if(u32ChannelOpenCounter2 == 3000)
+          {
+            u32ChannelOpenCounter2 = 0;
+            LCDCommand(LCD_CLEAR_CMD);
+            LCDMessage( LINE1_START_ADDR ,au8SeekerMessage3 );
+            UserApp1_StateMachine = UserApp1SM_WaitChannelClose;         
+          }
         } 
         if(s8UserApp1_RSSI<  -50 && s8UserApp1_RSSI>= -60)
         {
@@ -445,7 +430,7 @@ static void UserApp1SM_ChannelOpen(void)
           LedOff(BLUE);
           LedOff(PURPLE);
           LedOff(WHITE);        
-        }
+        }       
       }   
     }
   }
@@ -481,29 +466,16 @@ static void UserApp1SM_WaitChannelClose(void)
 
 static void UserApp1SM_Change(void)
 {
-  static u8 au8ChangeMessage1[]="Change or restart?";
-  static u8 au8ChangeMessage0[]="BUTTON0 or BUTTON1";
-  static u8 au8ChangeMessage2[]="Changing...";
-  static u8 au8ChangeMessage3[]="Run away,Wait 10s";
-  static u8 au8ChangeMessage4[]="Backing...";
+  static u8 au8ChangeMessage1[]="Changing...";
+  static u8 au8ChangeMessage2[]="Run away,Wait 10s";
+  static u32 u32ChangeCounter=0;
   
-  static u32 u32ChangeCounter1=0;
-  static u32 u32ChangeCounter2=0;
-  
-  u32ChangeCounter1++;
-  if(u32ChangeCounter1 == LCDMESSAGE_DELAY)
+  u32ChangeCounter++;
+  if(u32ChangeCounter == LCDMESSAGE_DELAY)
   {
     LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, au8ChangeMessage1);
-    LCDMessage(LINE2_START_ADDR, au8ChangeMessage0);
-  }
-  if(WasButtonPressed(BUTTON0))
-  {
-    u32ChangeCounter2++;
-    ButtonAcknowledge(BUTTON0);
-    LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, au8ChangeMessage2);
-    LCDMessage(LINE2_START_ADDR, au8ChangeMessage3);
+    LCDMessage(LINE1_START_ADDR, au8ChangeMessage1); 
+    LCDMessage(LINE2_START_ADDR, au8ChangeMessage2);
     if(sAntSetupData.AntChannelType == ANT_CHANNEL_TYPE_SEEK)
     {
       sAntSetupData.AntChannelType = ANT_CHANNEL_TYPE_HIDE;
@@ -512,30 +484,12 @@ static void UserApp1SM_Change(void)
     {
       sAntSetupData.AntChannelType = ANT_CHANNEL_TYPE_SEEK;
     }
-    bChangeFlag = TRUE;
-    if(u32ChangeCounter2 == MASTER_SLAVE_CHANGE_DELAY)
-    {
-      u32ChangeCounter2 = 0;
-      AntAssignChannel(&sAntSetupData);
-      UserApp1_u32Timeout = G_u32SystemTime1ms;
-      UserApp1_StateMachine = UserApp1SM_WaitChannelAssign;  
-    } 
   }
-  if(WasButtonPressed(BUTTON1))
+  if(u32ChangeCounter == MASTER_SLAVE_CHANGE_DELAY)
   {
-    u32ChangeCounter2++;
-    ButtonAcknowledge(BUTTON1);
-    LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, au8ChangeMessage4);
-    bChangeFlag = FALSE;
-    if(u32ChangeCounter2 == 1000);
-    {
-      u32ChangeCounter2 = 0;
-      AntAssignChannel(&sAntSetupData);
-      UserApp1_u32Timeout = G_u32SystemTime1ms;
-      UserApp1_StateMachine = UserApp1SM_WaitChannelAssign;
-    }
-  }
+    u32ChangeCounter = 0;
+    UserApp1_StateMachine = UserApp1SM_WaitChannelOpen;  
+  } 
 }
 
 
