@@ -24,12 +24,12 @@ Header file for yournewtaskname.c
 Type Definitions
 **********************************************************************************************************************/
 
-#define MASTER_SLAVE_CHANGE_DELAY       (u32)10000               
-#define LCDMESSAGE_DELAY                (u32)50             /*the machine can not ICDMessage so fast*/
-        
+#define MASTER_SLAVE_CHANGE_DELAY       (u32)10000          /*after this time change*/   
+#define LCDMESSAGE_DELAY                (u32)50             /*the machine can not LCDMessage so fast*/
+                                                            /*firstly I write a delay state,and failed,now I think maybe a function can do*/
 
-#define WARNING_BLINK_TIME              (u32)1500 
-
+#define WARNING_BLINK_TIME              (u32)1500           /* the introduce message keep*/
+#define FINDTIME                        (u32)3000           /*keep this time close judge success*/
 
 /**********************************************************************************************************************
 Constants / Definitions
