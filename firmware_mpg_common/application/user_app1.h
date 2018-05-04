@@ -88,8 +88,7 @@ static void UserApp1SM_Change(void);
 
 
 /*no ues*/
-static void UserApp1SM_Error(void);
-static void UserApp1SM_Idle(void); 
+static void UserApp1SM_Error(void); 
 static void UserApp1SM_FailedInit(void);        
 
 
